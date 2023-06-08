@@ -33,8 +33,10 @@ Usage:
   main [OPTIONS]
 
 Application Options:
-  -i, --input-file=  The input file in yaml format
-  -o, --output-file= The output file
+  -i, --input-file=  The input file in yaml format (default: -)
+  -o, --output-file= The output file (default: -)
+  -n, --num-workers= Number of workers (default: 4)
+  -m, --max-retries= Maximum number of retries (default: 3)
 
 Help Options:
   -h, --help         Show this help message
@@ -153,7 +155,7 @@ Due to the proxy data sources of this project coming from other projects, it is 
 - [ ] Support HTTPS proxies
 - [ ] Support transparent HTTPS proxies
 - [ ] Support HTTPS tunnels
-- [ ] Allow the downloader to read proxy list download links through a configuration file
+- [x] Allow the downloader to read proxy list download links through a configuration file
 
 ## Acknowledgement
 
