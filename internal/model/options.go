@@ -9,8 +9,8 @@ type ExportOptions struct {
 }
 
 type DownloadOptions struct {
-	InputFile  string `short:"i" long:"input-file" description:"The input file in yaml format" required:"true"`
-	OutputFile string `short:"o" long:"output-file" description:"The output file" required:"true"`
+	InputFile  string `short:"i" long:"input-file" description:"The input file in yaml format" required:"true" default:"-"`
+	OutputFile string `short:"o" long:"output-file" description:"The output file" required:"true" default:"-"`
 	NumWorkers int    `short:"n" long:"num-workers" description:"Number of workers" default:"4"`
 	MaxRetries int    `short:"m" long:"max-retries" description:"Maximum number of retries" default:"3"`
 }

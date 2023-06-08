@@ -55,18 +55,24 @@ func httpStatusCodeLog(statusCode int) string {
 
 func loader() error {
 	// Load the YAML file
-	yamlFile, err := os.Open(downloadOptions.InputFile)
-	if err != nil {
-		fmt.Println(errorLog(err))
-		return err
+	var yamlFile *os.File
+	var err error
+	if downloadOptions.InputFile == "-" {
+		yamlFile = os.Stdin
+	} else {
+		yamlFile, err = os.Open(downloadOptions.InputFile)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, errorLog(err))
+			return err
+		}
+		defer yamlFile.Close()
 	}
-	defer yamlFile.Close()
 
 	// Parse the YAML file into a slice of Source structs
 	sources := []proxySource{}
 	err = yaml.NewDecoder(yamlFile).Decode(&sources)
 	if err != nil {
-		fmt.Println(errorLog(err))
+		fmt.Fprintln(os.Stderr, errorLog(err))
 		return err
 	}
 
@@ -93,7 +99,7 @@ func worker() {
 			// Download the proxy list
 			resp, err := http.Get(task.source.Url)
 			if err != nil {
-				fmt.Println(errorLog(err))
+				fmt.Fprintln(os.Stderr, errorLog(err))
 				continue
 			}
 			defer resp.Body.Close()
@@ -107,7 +113,7 @@ func worker() {
 				if matched {
 					ip, port, err := net.SplitHostPort(line)
 					if err != nil {
-						fmt.Println(errorLog(err))
+						fmt.Fprintln(os.Stderr, errorLog(err))
 						continue
 					}
 					writeTaskQueue <- &writeTask{
@@ -133,7 +139,7 @@ func worker() {
 func writer() error {
 	tempFile, err := os.CreateTemp("", "")
 	if err != nil {
-		fmt.Println(errorLog(err))
+		fmt.Fprintln(os.Stderr, errorLog(err))
 		return err
 	}
 	defer tempFile.Close()
@@ -152,7 +158,7 @@ func writer() error {
 	// Deduplicate the temp file
 	numLines, err := util.DeduplicateLinesRandomly(tempFile.Name(), downloadOptions.OutputFile)
 	if err != nil {
-		fmt.Println(errorLog(err))
+		fmt.Fprintln(os.Stderr, errorLog(err))
 		return err
 	}
 	color.New(color.FgBlue).Printf("%d unique proxy services found totally\n", numLines)

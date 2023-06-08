@@ -8,17 +8,23 @@ import (
 )
 
 func DeduplicateLinesRandomly(inputFilepath string, outputFilepath string) (int, error) {
+	var outputFile *os.File
+	var err error
+	if outputFilepath == "-" {
+		outputFile = os.Stdout
+	} else {
+		outputFile, err = os.Create(outputFilepath)
+		if err != nil {
+			return -1, err
+		}
+		defer outputFile.Close()
+	}
+
 	file, err := os.Open(inputFilepath)
 	if err != nil {
 		return -1, err
 	}
 	defer file.Close()
-
-	outputFile, err := os.Create(outputFilepath)
-	if err != nil {
-		return -1, err
-	}
-	defer outputFile.Close()
 
 	scanner := bufio.NewScanner(file)
 	uniqueLines := make(map[string]bool)
