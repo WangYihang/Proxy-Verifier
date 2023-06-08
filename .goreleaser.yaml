@@ -57,8 +57,9 @@ builds:
       - amd64
 
 archives:
-  - format: tar.gz
-    # this name template makes the OS and Arch compatible with the results of uname.
+  - 
+    id: default
+    format: tar.gz
     name_template: >-
       {{ .ProjectName }}_
       {{- title .Os }}_
@@ -70,6 +71,9 @@ archives:
     format_overrides:
     - goos: windows
       format: zip
+    files:
+      - README.md
+      - sources.yaml
 checksum:
   name_template: 'checksums.txt'
 snapshot:

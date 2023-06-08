@@ -9,6 +9,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/sirupsen/logrus v1.9.0
+	gopkg.in/yaml.v2 v2.4.0
 	h12.io/socks v1.0.3
 )
 

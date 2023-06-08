@@ -9,6 +9,7 @@ type ExportOptions struct {
 }
 
 type DownloadOptions struct {
+	InputFile  string `short:"i" long:"input-file" description:"The input file in yaml format" required:"true"`
 	OutputFile string `short:"o" long:"output-file" description:"The output file" required:"true"`
 }
 
