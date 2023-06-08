@@ -61,19 +61,17 @@ func export(inputFilepath string, outputFilepath string) error {
 		// Transform json to proxy format
 		newline, err := transformLine(oldline)
 		if err != nil {
-			// fmt.Printf("%s\r", err)
 			continue
 		}
 		fmt.Println(strings.TrimSpace(newline))
 		// Write to output file
 		_, err = tempFile.WriteString(newline)
 		if err != nil {
-			// fmt.Printf("%s\r", err)
 			continue
 		}
 	}
 
-	err = util.DeduplicateLinesRandomly(tempFile.Name(), outputFilepath)
+	_, err = util.DeduplicateLinesRandomly(tempFile.Name(), outputFilepath)
 	if err != nil {
 		return err
 	}

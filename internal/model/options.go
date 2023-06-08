@@ -11,9 +11,11 @@ type ExportOptions struct {
 type DownloadOptions struct {
 	InputFile  string `short:"i" long:"input-file" description:"The input file in yaml format" required:"true"`
 	OutputFile string `short:"o" long:"output-file" description:"The output file" required:"true"`
+	NumWorkers int    `short:"n" long:"num-workers" description:"Number of workers" default:"4"`
+	MaxRetries int    `short:"m" long:"max-retries" description:"Maximum number of retries" default:"3"`
 }
 
-type secretOptions struct {
+type SecretOptions struct {
 	Secret string `short:"s" long:"secret" description:"The secret used to verify the integrity of the proxy" default:"2d7c29dd-cecb-4454-a4ec-ae2734771a60"`
 }
 
@@ -27,12 +29,12 @@ type MainOptions struct {
 	Verbose         []bool `short:"v" long:"verbose" description:"Show verbose debug information"`
 	MeasurementId   string `short:"d" long:"measurement-id" description:"The measurement ID used to seperate different measurements in logs" default:""`
 	TargetUrlObject *url.URL
-	secretOptions
+	SecretOptions
 }
 
 type ServerOptions struct {
 	BindHost    string `short:"b" long:"bind-host" description:"The host to bind" required:"true" default:"127.0.0.1"`
 	BindPort    int    `short:"p" long:"bind-port" description:"The port to bind" required:"true" default:"80"`
 	LogFilename string `short:"l" long:"log-filename" description:"The filename to log to" required:"true" default:"gin.log"`
-	secretOptions
+	SecretOptions
 }

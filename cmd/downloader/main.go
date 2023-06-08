@@ -10,81 +10,161 @@ import (
 
 	"github.com/WangYihang/Proxy-Verifier/internal/model"
 	"github.com/WangYihang/Proxy-Verifier/internal/util"
+	"github.com/fatih/color"
 	flags "github.com/jessevdk/go-flags"
-	logger "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
 
 var downloadOptions model.DownloadOptions
+var downloadTaskQueue chan *downloadTask
+var writeTaskQueue chan *writeTask
+var regex *regexp.Regexp
 
-type Source struct {
-	Type string `yaml:"type"`
-	Url  string `yaml:"url"`
+type proxySource struct {
+	Protocol string `yaml:"type"`
+	Url      string `yaml:"url"`
 }
 
-// downloadProxies downloads proxies from a list of URLs
-func downloadProxies(inputFilepath, outputFilepath string) error {
-	yamlFile, err := os.Open(inputFilepath)
+type downloadTask struct {
+	source     *proxySource
+	maxRetries int
+}
+
+type writeTask struct {
+	content string
+}
+
+func createDownloadTask(source *proxySource) *downloadTask {
+	return &downloadTask{
+		source:     source,
+		maxRetries: downloadOptions.MaxRetries,
+	}
+}
+
+func errorLog(err error) string {
+	return color.New(color.FgRed).Sprint(err.Error())
+}
+
+func httpStatusCodeLog(statusCode int) string {
+	if statusCode == 200 {
+		return color.New(color.FgGreen).Sprintf("[%d]", statusCode)
+	} else {
+		return color.New(color.FgRed).Sprintf("[%d]", statusCode)
+	}
+}
+
+func loader() error {
+	// Load the YAML file
+	yamlFile, err := os.Open(downloadOptions.InputFile)
 	if err != nil {
+		fmt.Println(errorLog(err))
 		return err
 	}
 	defer yamlFile.Close()
 
 	// Parse the YAML file into a slice of Source structs
-	sources := []Source{}
+	sources := []proxySource{}
 	err = yaml.NewDecoder(yamlFile).Decode(&sources)
 	if err != nil {
+		fmt.Println(errorLog(err))
 		return err
 	}
 
+	// Dispatch download tasks
+	for _, source := range sources {
+		task := createDownloadTask(&source)
+		downloadTaskQueue <- task
+	}
+
+	// Add stop signals for all workers
+	for i := 0; i < downloadOptions.NumWorkers; i++ {
+		downloadTaskQueue <- nil
+	}
+	return nil
+}
+
+func worker() {
+	for {
+		task := <-downloadTaskQueue
+		if task == nil {
+			break
+		}
+		for ; task.maxRetries > 0; task.maxRetries-- {
+			// Download the proxy list
+			resp, err := http.Get(task.source.Url)
+			if err != nil {
+				fmt.Println(errorLog(err))
+				continue
+			}
+			defer resp.Body.Close()
+			// Parse the proxy list
+			scanner := bufio.NewScanner(resp.Body)
+			numProxies := 0
+			for scanner.Scan() {
+				line := scanner.Text()
+				// Match each proxy
+				matched := regex.MatchString(line)
+				if matched {
+					ip, port, err := net.SplitHostPort(line)
+					if err != nil {
+						fmt.Println(errorLog(err))
+						continue
+					}
+					writeTaskQueue <- &writeTask{
+						content: fmt.Sprintf("%s,%s,%s\n", task.source.Protocol, ip, port),
+					}
+					numProxies += 1
+				}
+			}
+			// color.New(color.FgGreen).Printf("[%d] %s (%d proxies)\n", , ,
+			fmt.Printf(
+				"%s %s %s\n",
+				httpStatusCodeLog(resp.StatusCode),
+				color.New(color.FgYellow).Sprintf("%s", task.source.Url),
+				color.New(color.FgBlue).Sprintf("(%d proxy services)", numProxies),
+			)
+			// Exit the loop if the proxy list is downloaded successfully
+			break
+		}
+	}
+	writeTaskQueue <- nil
+}
+
+func writer() error {
 	tempFile, err := os.CreateTemp("", "")
 	if err != nil {
+		fmt.Println(errorLog(err))
 		return err
 	}
 	defer tempFile.Close()
 
-	// compile regex firstly to get better performance
-	regex := regexp.MustCompile(`\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,5}`)
-
-	for _, source := range sources {
-		fmt.Printf("[%s] %s\n", source.Type, source.Url)
-		resp, err := http.Get(source.Url)
-		if err != nil {
-			fmt.Println(err)
+	// Write tasks to the temp file
+	numFinishedWorkers := 0
+	for numFinishedWorkers < downloadOptions.NumWorkers {
+		task := <-writeTaskQueue
+		if task == nil {
+			numFinishedWorkers += 1
 			continue
 		}
-		defer resp.Body.Close()
-		scanner := bufio.NewScanner(resp.Body)
-		numProxies := 0
-		for scanner.Scan() {
-			line := scanner.Text()
-			matched := regex.MatchString(line)
-			if matched {
-				ip, port, err := net.SplitHostPort(line)
-				if err != nil {
-					fmt.Println(err)
-					continue
-				}
-				_, err = tempFile.WriteString(fmt.Sprintf("%s,%s,%s\n", source.Type, ip, port))
-				if err != nil {
-					logger.Error(err)
-					continue
-				}
-				numProxies++
-			}
-		}
-		if err := scanner.Err(); err != nil {
-			fmt.Println(err)
-			continue
-		}
-		fmt.Println(numProxies, "\t", source.Type, "\t", source.Url)
+		tempFile.WriteString(task.content)
 	}
 
-	err = util.DeduplicateLinesRandomly(tempFile.Name(), outputFilepath)
+	// Deduplicate the temp file
+	numLines, err := util.DeduplicateLinesRandomly(tempFile.Name(), downloadOptions.OutputFile)
 	if err != nil {
+		fmt.Println(errorLog(err))
 		return err
 	}
+	color.New(color.FgBlue).Printf("%d unique proxy services found totally\n", numLines)
 	return nil
+}
+
+func init() {
+	// initialize the task queues
+	downloadTaskQueue = make(chan *downloadTask)
+	writeTaskQueue = make(chan *writeTask)
+	// compile regex firstly to get better performance
+	regex = regexp.MustCompile(`\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,5}`)
 }
 
 func main() {
@@ -92,8 +172,15 @@ func main() {
 	if err != nil {
 		os.Exit(1)
 	}
-	err = downloadProxies(downloadOptions.InputFile, downloadOptions.OutputFile)
-	if err != nil {
-		os.Exit(1)
+
+	// Start loader
+	go loader()
+
+	// Start workers
+	for i := 0; i < downloadOptions.NumWorkers; i++ {
+		go worker()
 	}
+
+	// Start writer
+	writer()
 }

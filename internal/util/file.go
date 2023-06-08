@@ -7,16 +7,16 @@ import (
 	"os"
 )
 
-func DeduplicateLinesRandomly(inputFilepath string, outputFilepath string) error {
+func DeduplicateLinesRandomly(inputFilepath string, outputFilepath string) (int, error) {
 	file, err := os.Open(inputFilepath)
 	if err != nil {
-		return err
+		return -1, err
 	}
 	defer file.Close()
 
 	outputFile, err := os.Create(outputFilepath)
 	if err != nil {
-		return err
+		return -1, err
 	}
 	defer outputFile.Close()
 
@@ -31,7 +31,7 @@ func DeduplicateLinesRandomly(inputFilepath string, outputFilepath string) error
 	}
 
 	if err := scanner.Err(); err != nil {
-		return err
+		return -1, err
 	}
 
 	lines := make([]string, 0, len(uniqueLines))
@@ -47,5 +47,5 @@ func DeduplicateLinesRandomly(inputFilepath string, outputFilepath string) error
 		fmt.Fprintln(outputFile, line)
 	}
 
-	return nil
+	return len(lines), nil
 }
