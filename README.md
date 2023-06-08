@@ -33,6 +33,7 @@ Usage:
   main [OPTIONS]
 
 Application Options:
+  -i, --input-file=  The input file in yaml format
   -o, --output-file= The output file
 
 Help Options:
@@ -108,7 +109,9 @@ AVAILABLE_FREE_OPEN_PROXIES_FILEPATH="available-free-open-proxies-v${TODAY}.txt"
 1. First, download the proxy list using the `downloader`.
 
 ```bash
-$ ./downloader --output-file ${FREE_OPEN_PROXIES_FILEPATH}
+$ # Download the default proxies source lists yaml file
+$ wget https://raw.githubusercontent.com/WangYihang/Proxy-Verifier/main/sources.yaml
+$ ./downloader --input-file source.yaml --output-file ${FREE_OPEN_PROXIES_FILEPATH}
 ```
 
 2. Next, start the `server` on a machine with a public IP (e.g., 1.2.3.4).
