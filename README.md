@@ -113,7 +113,7 @@ AVAILABLE_FREE_OPEN_PROXIES_FILEPATH="available-free-open-proxies-v${TODAY}.txt"
 ```bash
 $ # Download the default proxies source lists yaml file
 $ wget https://raw.githubusercontent.com/WangYihang/Proxy-Verifier/main/sources.yaml
-$ ./downloader --input-file source.yaml --output-file ${FREE_OPEN_PROXIES_FILEPATH}
+$ ./downloader --input-file sources.yaml --output-file ${FREE_OPEN_PROXIES_FILEPATH}
 ```
 
 2. Next, start the `server` on a machine with a public IP (e.g., 1.2.3.4).
