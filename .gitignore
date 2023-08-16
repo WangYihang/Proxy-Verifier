@@ -24,6 +24,9 @@ dist/
 # Visual Studio Code
 .vscode/
 
+# JetBrains IDEA
+.idea/
+
 # Data files
 *.txt
 

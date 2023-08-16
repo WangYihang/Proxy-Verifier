@@ -2,19 +2,20 @@ package protocol
 
 import (
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/WangYihang/Proxy-Verifier/internal/model"
 	"github.com/WangYihang/Proxy-Verifier/internal/util"
-	"h12.io/socks"
 )
 
-func HttpViaSocksTunnel(task *model.Task) (result model.Result) {
+func HttpViaHttpsProxy(task *model.Task) (result model.Result) {
 	result = model.Result{Task: task}
 	timeoutDuration := time.Second * time.Duration(task.Timeout)
 
 	// Create transport
-	transport := &http.Transport{Dial: socks.Dial(task.ProxyUri)}
+	proxyURIObject, _ := url.Parse(task.ProxyUri)
+	transport := &http.Transport{Proxy: http.ProxyURL(proxyURIObject)}
 
 	// Create client
 	client := &http.Client{
@@ -23,11 +24,12 @@ func HttpViaSocksTunnel(task *model.Task) (result model.Result) {
 	}
 
 	// Send request
-	newUrl := util.BuildUrl(task.TargetUri, task.TaskId, task.ProxyProtocol, task.ProxyHost, task.ProxyPort)
-	err := util.SendVerificationHttpRequest(client, newUrl, &result)
+	cacheBypassingUrl := util.BuildUrl(task.TargetUri, task.TaskId, task.ProxyProtocol, task.ProxyHost, task.ProxyPort)
+	err := util.SendVerificationHttpRequest(client, cacheBypassingUrl, &result)
 	if err != nil {
 		result.Error = err.Error()
 		return
 	}
+
 	return result
 }
