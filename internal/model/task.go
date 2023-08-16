@@ -3,18 +3,16 @@ package model
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/google/uuid"
 )
 
 type BaseTask struct {
-	Index         int       `json:"index"`
-	TaskId        string    `json:"task_id"`
-	MeasurementId string    `json:"measurement_id"`
-	ScheduledTime time.Time `json:"scheduled_time"`
-	StartTime     time.Time `json:"start_time"`
-	EndTime       time.Time `json:"end_time"`
+	Index         int    `json:"index"`
+	TaskId        string `json:"task_id"`
+	MeasurementId string `json:"measurement_id"`
+	StartTime     int64  `json:"start_time"`
+	Duration      int64  `json:"duration"`
 }
 
 type Task struct {

@@ -1,8 +1,6 @@
 package processer
 
 import (
-	"time"
-
 	"github.com/WangYihang/Proxy-Verifier/internal"
 	"github.com/WangYihang/Proxy-Verifier/internal/model"
 )
@@ -10,5 +8,4 @@ import (
 func ScheduleTask(task *model.Task, taskQueue chan *model.Task) {
 	taskQueue <- task
 	internal.State.TaskScheduled()
-	task.ScheduledTime = time.Now()
 }

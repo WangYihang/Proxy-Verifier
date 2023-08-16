@@ -15,13 +15,14 @@ func Worker(taskQueue chan *model.Task, resultQueue chan *model.Result) {
 			break
 		}
 		// Update start time
-		task.StartTime = time.Now()
+		startTime := time.Now()
+		task.StartTime = startTime.UnixMilli()
 		// Update max index
 		internal.State.CurrentIndex = task.Index
 		// Process Task
 		result := task.ProcessFunc(task)
 		// Update end time
-		task.EndTime = time.Now()
+		task.Duration = time.Since(startTime).Milliseconds()
 		// Save result
 		resultQueue <- &result
 	}
