@@ -32,9 +32,16 @@ type MainOptions struct {
 	SecretOptions
 }
 
-type ServerOptions struct {
+type HTTPEchoServerOptions struct {
 	BindHost    string `short:"b" long:"bind-host" description:"The host to bind" required:"true" default:"127.0.0.1"`
 	BindPort    int    `short:"p" long:"bind-port" description:"The port to bind" required:"true" default:"80"`
 	LogFilename string `short:"l" long:"log-filename" description:"The filename to log to" required:"true" default:"gin.log"`
+	SecretOptions
+}
+
+type SMTPEchoServerOptions struct {
+	BindHost    string `short:"b" long:"bind-host" description:"The host to bind" required:"true" default:"127.0.0.1"`
+	BindPort    int    `short:"p" long:"bind-port" description:"The port to bind" required:"true" default:"25"`
+	LogFilename string `short:"l" long:"log-filename" description:"The filename to log to" required:"true" default:"smtp.log"`
 	SecretOptions
 }

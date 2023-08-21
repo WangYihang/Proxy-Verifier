@@ -20,9 +20,9 @@ builds:
     goarch:
       - amd64
 
-  - id: "http-server"
-    main: "./cmd/server/http"
-    binary: http-server
+  - id: "http-echo-server"
+    main: "./cmd/echo-server/http"
+    binary: http-echo-server
     env:
       - CGO_ENABLED=0
     goos:
@@ -32,9 +32,9 @@ builds:
     goarch:
       - amd64
 
-  - id: "smtp-server"
-    main: "./cmd/server/smtp"
-    binary: smtp-server
+  - id: "smtp-echo-server"
+    main: "./cmd/echo-server/smtp"
+    binary: smtp-echo-server
     env:
       - CGO_ENABLED=0
     goos:

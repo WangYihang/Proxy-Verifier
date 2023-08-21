@@ -27,7 +27,7 @@ type Response struct {
 }
 
 var logFd *os.File
-var options *model.ServerOptions
+var options *model.HTTPEchoServerOptions
 
 func HandleChallenge(challenge string) string {
 	var secret = options.Secret
@@ -80,7 +80,7 @@ func Handler(c *gin.Context) {
 
 func init() {
 	var err error
-	options = &model.ServerOptions{}
+	options = &model.HTTPEchoServerOptions{}
 	_, err = flags.Parse(options)
 	if err != nil {
 		os.Exit(1)
