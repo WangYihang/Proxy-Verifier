@@ -75,3 +75,6 @@
 
 - type: socks5
   url: https://raw.githubusercontent.com/roosterkid/openproxylist/main/SOCKS5_RAW.txt
+
+- type: all
+  url: https://rcloak.com/api/proxies/raw?protocol=all
